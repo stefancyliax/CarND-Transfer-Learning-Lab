@@ -1,11 +1,9 @@
 import pickle
 import tensorflow as tf
 # TODO: import Keras layers you need here
-from keras.models import Sequential
-from keras.layers.core import Dense, Activation, Flatten, Dropout
-from keras.layers.convolutional import Convolution2D
-from keras.layers.pooling import MaxPooling2D
-
+from keras.models import Sequential, Model
+from keras.layers import Dense, Flatten, Input, Activation
+import numpy as np
 
 flags = tf.app.flags
 FLAGS = flags.FLAGS
@@ -52,20 +50,21 @@ def main(_):
     # 10 for cifar10
     # 43 for traffic
 
+    # Input shape from size of X_train
+    input_shape = X_train.shape[1:]
+    print('Input shape: ', input_shape)
     nb_classes = len(np.unique(y_train))
+    print('output shape: ', nb_classes)
 
     model = Sequential()
-    model.add(Dense(nb_classes))
+    model.add(Dense(nb_classes, input_shape=input_shape))
     model.add(Activation('softmax'))
+    model.compile('adam', 'sparse_categorical_crossentropy', ['accuracy'])
 
     # TODO: train your model here
 
-    from sklearn.preprocessing import LabelBinarizer
-    label_binarizer = LabelBinarizer()
-    y_one_hot = label_binarizer.fit_transform(y_train)
+    model.fit(X_train, y_train, batch_size=256, nb_epoch=50, validation_data=(X_val, y_val))
 
-    model.compile('adam', 'categorical_crossentropy', ['accuracy'])
-    history = model.fit(X_normalized, y_one_hot, nb_epoch=3, validation_split=0.2)
 
 # parses flags and calls the `main` function above
 if __name__ == '__main__':
